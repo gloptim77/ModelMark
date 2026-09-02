@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Linear evaluation report.</title>
+<style>
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	background: #ffffff;
+	color: #111111;
+	font-family: "Times New Roman", Georgia, serif;
+}
+
+.report {
+	display: inline-block;
+	padding: 20px;
+}
+
+.title {
+	font-size: 22px;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.subtitle {
+	color: #666666;
+	font-size: 13px;
+	margin-bottom: 22px;
+	overflow-wrap: break-word;
+	white-space: pre-wrap;
+}
+
+/* ============================================================
+   TABLE — booktabs style: no vertical rules, rules top/bottom
+   ============================================================ */
+
+table {
+	border-collapse: collapse;
+	font-size: 13.5px;
+	border-top: 2px solid #000000;
+	border-bottom: 2px solid #000000;
+}
+
+thead th {
+	padding: 6px 16px;
+	text-align: center;
+	font-weight: 400;
+}
+
+.header-main th {
+	font-weight: 600;
+	padding-bottom: 2px;
+}
+
+.header-main .model-header {
+	font-size: 14px;
+}
+
+.model-header-inner {
+	display: block;
+	margin: 0 6px 4px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid #000000;
+}
+
+.header-metric th {
+	font-size: 12.5px;
+	font-weight: 400;
+	color: #333333;
+	border-bottom: 1px solid #000000;
+	padding-bottom: 6px;
+}
+
+.corner-label {
+	font-size: 12.5px;
+	font-weight: 400;
+	color: #000000;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+/* ============================================================
+   BODY
+   ============================================================ */
+
+tbody th,
+tbody td {
+	padding: 6px 16px;
+}
+
+.dataset-cell {
+	text-align: left;
+	vertical-align: middle;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.context-cell {
+	text-align: left;
+	padding-left: 24px !important;
+	vertical-align: middle;
+	white-space: nowrap;
+	font-style: italic;
+	color: #444444;
+	font-weight: 400;
+}
+
+.value-cell {
+	text-align: center;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+tr.striped td,
+tr.striped th {
+	background: #f7f7f7;
+}
+
+tr.dataset-start td,
+tr.dataset-start th {
+	border-top: 1px solid #cccccc;
+}
+
+/* ============================================================
+   PER-MODEL SUMMARY STATS (time, params, FLOPs, ...)
+   ============================================================ */
+
+tbody.stats tr:first-child td,
+tbody.stats tr:first-child th {
+	border-top: 1px solid #000000;
+}
+
+.stats-label {
+	text-align: left;
+	font-size: 12px;
+	font-style: italic;
+	font-weight: 400;
+	color: #555555;
+}
+
+.stats-value {
+	text-align: center;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+	font-size: 12.5px;
+	color: #333333;
+}
+
+/* ============================================================
+   BEST RESULTS
+   ============================================================ */
+
+.best {
+	font-weight: 700;
+}
+
+/* ============================================================
+   METADATA
+   ============================================================ */
+
+.metadata {
+	margin-top: 20px;
+	padding-top: 10px;
+	font-size: 12.5px;
+	color: #444444;
+}
+
+.metadata-title {
+	margin-bottom: 8px;
+	color: #111111;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.metadata-row {
+	display: grid;
+	grid-template-columns: 110px auto;
+	margin: 3px 0;
+}
+
+.metadata-label {
+	font-weight: 600;
+	color: #222222;
+}
+
+.metadata-value {
+	color: #000000;
+}
+
+</style>
+</head>
+<body>
+
+<div class="report">
+
+	<div class="title">Linear evaluation report.</div>
+	<div class="subtitle">Mean over 3 runs.</div>
+
+	<table>
+		<thead>
+			
+			<tr class="header-main">
+				<th class="index-header corner-label" colspan="2">Model</th>
+		
+				<th colspan="2" class="model-header">
+					<div class="model-header-inner">Linear</div>
+				</th>
+			
+				<th colspan="2" class="model-header">
+					<div class="model-header-inner">Conv</div>
+				</th>
+			
+				<th colspan="2" class="model-header">
+					<div class="model-header-inner">GRU</div>
+				</th>
+			
+				<th colspan="2" class="model-header">
+					<div class="model-header-inner">LSTM</div>
+				</th>
+			</tr>
+			
+			<tr class="header-metric">
+				<th class="corner-placeholder corner-label" colspan="2">Metric</th>
+		
+					<th>RMSE</th>
+				
+					<th>MAE</th>
+				
+					<th>RMSE</th>
+				
+					<th>MAE</th>
+				
+					<th>RMSE</th>
+				
+					<th>MAE</th>
+				
+					<th>RMSE</th>
+				
+					<th>MAE</th>
+				</tr>
+		</thead>
+		<tbody>
+			<tr class=""><th class="dataset-cell" rowspan="4">ETTh1</th><th class="context-cell">96</th><td class="value-cell">0.538</td><td class="value-cell">0.465</td><td class="value-cell">0.640</td><td class="value-cell">0.582</td><td class="value-cell best">0.455</td><td class="value-cell best">0.389</td><td class="value-cell">0.613</td><td class="value-cell">0.551</td></tr><tr class="striped"><th class="context-cell">192</th><td class="value-cell">0.542</td><td class="value-cell">0.455</td><td class="value-cell">0.569</td><td class="value-cell">0.495</td><td class="value-cell best">0.518</td><td class="value-cell best">0.445</td><td class="value-cell">0.675</td><td class="value-cell">0.609</td></tr><tr class=""><th class="context-cell">336</th><td class="value-cell">0.536</td><td class="value-cell">0.451</td><td class="value-cell">0.506</td><td class="value-cell">0.431</td><td class="value-cell best">0.496</td><td class="value-cell best">0.425</td><td class="value-cell">0.654</td><td class="value-cell">0.586</td></tr><tr class="striped"><th class="context-cell">720</th><td class="value-cell">0.724</td><td class="value-cell">0.648</td><td class="value-cell">0.680</td><td class="value-cell">0.621</td><td class="value-cell best">0.601</td><td class="value-cell best">0.529</td><td class="value-cell">0.777</td><td class="value-cell">0.703</td></tr><tr class="dataset-start"><th class="dataset-cell" rowspan="4">ETTh2</th><th class="context-cell">96</th><td class="value-cell">0.938</td><td class="value-cell">0.864</td><td class="value-cell">1.107</td><td class="value-cell">1.028</td><td class="value-cell best">0.634</td><td class="value-cell best">0.542</td><td class="value-cell">0.887</td><td class="value-cell">0.796</td></tr><tr class="striped"><th class="context-cell">192</th><td class="value-cell">1.030</td><td class="value-cell">0.950</td><td class="value-cell">1.091</td><td class="value-cell">0.987</td><td class="value-cell best">0.715</td><td class="value-cell best">0.611</td><td class="value-cell">1.085</td><td class="value-cell">0.992</td></tr><tr class=""><th class="context-cell">336</th><td class="value-cell best">0.919</td><td class="value-cell">0.843</td><td class="value-cell">1.027</td><td class="value-cell">0.930</td><td class="value-cell">0.927</td><td class="value-cell best">0.829</td><td class="value-cell">0.980</td><td class="value-cell">0.899</td></tr><tr class="striped"><th class="context-cell">720</th><td class="value-cell">1.125</td><td class="value-cell">1.054</td><td class="value-cell">1.335</td><td class="value-cell">1.229</td><td class="value-cell best">1.061</td><td class="value-cell best">0.964</td><td class="value-cell">1.088</td><td class="value-cell">1.002</td></tr>
+		</tbody>
+		<tbody class="stats"><tr class="stats-row"><th class="stats-label" colspan="2">Time (s/epoch)</th><td class="stats-value best" colspan="2">0.145</td><td class="stats-value" colspan="2">0.161</td><td class="stats-value" colspan="2">0.234</td><td class="stats-value" colspan="2">0.238</td></tr><tr class="stats-row"><th class="stats-label" colspan="2">Params count (K)</th><td class="stats-value best" colspan="2">8.90</td><td class="stats-value" colspan="2">40.99</td><td class="stats-value" colspan="2">45.22</td><td class="stats-value" colspan="2">58.21</td></tr><tr class="stats-row"><th class="stats-label" colspan="2">GFLOPs</th><td class="stats-value best" colspan="2">21.34</td><td class="stats-value" colspan="2">85.67</td><td class="stats-value" colspan="2">97.90</td><td class="stats-value" colspan="2">130.06</td></tr><tr class="stats-row"><th class="stats-label" colspan="2">Peak memory usage (Gb)</th><td class="stats-value" colspan="2">0.08</td><td class="stats-value best" colspan="2">0.07</td><td class="stats-value" colspan="2">0.37</td><td class="stats-value" colspan="2">0.37</td></tr></tbody>
+	</table>
+
+	<div class="metadata">
+		<div class="metadata-title">Experimental setup</div>
+		
+				<div class="metadata-row">
+					<div class="metadata-label">OS</div>
+					<div class="metadata-value">Windows 10 10.0.19045 AMD64</div>
+				</div>
+				
+
+				<div class="metadata-row">
+					<div class="metadata-label">Python</div>
+					<div class="metadata-value">3.13.13</div>
+				</div>
+				
+
+				<div class="metadata-row">
+					<div class="metadata-label">PyTorch</div>
+					<div class="metadata-value">2.12.0+cu132</div>
+				</div>
+				
+
+				<div class="metadata-row">
+					<div class="metadata-label">CPU</div>
+					<div class="metadata-value">13th Gen Intel(R) Core(TM) i5-13400F</div>
+				</div>
+				
+
+				<div class="metadata-row">
+					<div class="metadata-label">GPU</div>
+					<div class="metadata-value">NVIDIA GeForce RTX 3060</div>
+				</div>
+				
+	</div>
+
+</div>
+
+</body>
+</html>
+	

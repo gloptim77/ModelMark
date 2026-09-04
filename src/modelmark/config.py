@@ -9,6 +9,7 @@ import torch.nn as nn
 from modelmark.models.gru import GRUModel
 from modelmark.models.conv import ConvModel
 from modelmark.models.lstm import LSTMModel
+from modelmark.models.transformer import TransformerModel
 from modelmark.models.linear import Linear
 # Either custom (uncomment)
 #from models.linear import Linear
@@ -85,7 +86,8 @@ test_config = {
 		"MAE": nn.L1Loss(),
 	},
 	"seeds": [1, 2, 3],
-	"contexts": [96, 192, 336, 720],
+	"input_len": [96, 96, 96],		# len should be equal to output_len
+	"output_len": [96, 192, 336],	# len should be equal to input_len
 	}
 
 # Other

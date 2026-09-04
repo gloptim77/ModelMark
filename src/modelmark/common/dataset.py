@@ -15,23 +15,23 @@ class CausalDataset(Dataset):
 	Sliding-window dataset for ETT.
 
 	Returns:
-		x: [seq_len, num_features]
-		y: [pred_len, 1]
+		x: [input_len, num_features]
+		y: [output_len, 1]
 	"""
 
 	def __init__(
 		self,
 		data_config: dict,
-		seq_len: int,
-		pred_len: int,
+		input_len: int,
+		output_len: int,
 		split: str = "train",
 		mean: np.ndarray | None = None,
 		std: np.ndarray | None = None,
 	):
 		super().__init__()
 
-		self.seq_len = seq_len
-		self.pred_len = pred_len
+		self.input_len = input_len
+		self.output_len = output_len
 
 		# Extract config
 		data_path = config.data_path + data_config["path"]
@@ -54,12 +54,15 @@ class CausalDataset(Dataset):
 		train_end = int(n * train_ratio)
 		val_end = int(n * (train_ratio + val_ratio))
 
+		# Train can be random
 		if split == "train":
 			start = 0
 			end = train_end
+		# Val never intersects with train
 		elif split == "val":
 			start = train_end
 			end = val_end
+		# Test never intersects with train or val
 		elif split == "test":
 			start = val_end
 			end = n
@@ -89,23 +92,24 @@ class CausalDataset(Dataset):
 		self.data = data[start:end]
 
 		# Number of valid windows
-		self.length = len(self.data) - seq_len - pred_len + 1
+		self.length = len(self.data) - input_len - output_len + 1
 
 		if self.length <= 0:
 			raise ValueError(
 				f"Split '{split}' is too short for "
-				f"seq_len={seq_len}, pred_len={pred_len}"
+				f"input_len={input_len}, output_len={output_len}"
 			)
 
 	def __len__(self):
 		return self.length
 
 	def __getitem__(self, idx):
+
 		x_start = idx
-		x_end = x_start + self.seq_len
+		x_end = x_start + self.input_len
 
 		y_start = x_end
-		y_end = y_start + self.pred_len
+		y_end = y_start + self.output_len
 
 		x = self.data[x_start:x_end, self.input_indices]
 		y = self.data[y_start:y_end, self.output_indices]

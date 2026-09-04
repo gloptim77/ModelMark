@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from modelmark.common.utils import load_config
 
 class ConvModel(nn.Module):
-	def __init__(self, input_dim : int, output_dim : int, context_size : int):
+	def __init__(self, input_dim: int, output_dim: int, input_len: int, output_len: int):
 		super().__init__()
 
 		# To avoid circular import, now it lives here
@@ -12,7 +13,8 @@ class ConvModel(nn.Module):
 
 		self.input_size = input_dim
 		self.output_size = output_dim
-		self.context_size = context_size
+		self.input_len = input_len
+		self.output_len = output_len
 		
 		self.hidden_size = config.model_config["Conv"]["hidden_size"]
 		self.num_layers = config.model_config["Conv"]["num_layers"]
@@ -41,35 +43,28 @@ class ConvModel(nn.Module):
 		self.pool = nn.AdaptiveAvgPool1d(1)
 
 		# Produce exactly context_size * output_size values
-		self.fc = nn.Linear(
-			self.hidden_size,
-			context_size * self.output_size,
-		)
+		self.fc = nn.Linear(self.hidden_size, output_len  * self.output_size)
 
 	def forward(self, x):
-		# x: [batch, sequence_length, input_size]
+		"""
+			input: [B, input_len, input_dim]
+			output: [B, output_len, output_dim]			
+		"""
 
-		# Conv1d expects:
+		if x.ndim != 3:
+			raise ValueError(f"Expected x to have shape [B, L, D], got {x.shape}")
+
 		# [batch, channels, sequence_length]
 		x = x.transpose(1, 2)
-
 		# [batch, hidden_size, sequence_length]
 		x = self.conv(x)
-
 		# [batch, hidden_size, 1]
 		x = self.pool(x)
-
 		# [batch, hidden_size]
 		x = x.squeeze(-1)
-
 		# [batch, context_size * output_size]
-		out = self.fc(x)
+		x = self.fc(x)
+		# Project to output dim and len
+		x = x.view(x.size(0), self.output_len, self.output_size)
 
-		# [batch, context_size, output_size]
-		out = out.view(
-			x.size(0),
-			self.context_size,
-			self.output_size,
-		)
-
-		return out
+		return x

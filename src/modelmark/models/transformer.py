@@ -1,19 +1,21 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from modelmark.common.utils import load_config
 
 class TransformerModel(nn.Module):
-	def __init__(self, input_dim : int, output_dim : int, context_size: int):
+	def __init__(self, input_dim: int, output_dim: int, input_len: int, output_len: int):
 		super().__init__()
 
 		# To avoid circular import, now it lives here
 		config = load_config()
-	
+
 		self.input_size = input_dim
 		self.output_size = output_dim
-		self.context_size = context_size
-		self.max_seq_len = self.context_size
+		self.input_len = input_len
+		self.output_len = output_len
+		self.max_seq_len = input_len
 		
 		self.hidden_size = config.model_config["Transformer"]["hidden_size"]
 		self.num_layers = config.model_config["Transformer"]["num_layers"]
@@ -38,14 +40,19 @@ class TransformerModel(nn.Module):
 		self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=self.num_layers)
 
 		# Map hidden representation to outputs
-		self.fc = nn.Linear(self.hidden_size, self.output_size)
+		self.out = nn.Linear(self.hidden_size, self.output_size * self.output_len)
 
 	def forward(self, x):
-		# x:
-		# [batch, sequence_length, input_size]
+		"""
+			input: [B, input_len, input_dim]
+			output: [B, output_len, output_dim]			
+		"""
 
-		batch_size, seq_len, _ = x.shape
+		if x.ndim != 3:
+			raise ValueError(f"Expected x to have shape [B, L, D], got {x.shape}")
 
+		_, seq_len, _ = x.shape
+		
 		if seq_len > self.pos_embedding.size(1):
 			raise ValueError(
 				f"Sequence length {seq_len} exceeds "
@@ -61,26 +68,20 @@ class TransformerModel(nn.Module):
 
 		# Causal mask:
 		# position i can only attend to positions <= i
-		mask = nn.Transformer.generate_square_subsequent_mask(
-			seq_len,
-			device=x.device,
-		)
+		mask = nn.Transformer.generate_square_subsequent_mask(seq_len, device=x.device)
 
 		# Self-attention through decoder layers
-		x = self.decoder(
-			tgt=x,
-			memory=x,
-			tgt_mask=mask,
-			memory_mask=mask,
-		)
+		x = self.decoder(tgt=x, memory=x, tgt_mask=mask, memory_mask=mask)
 		# [batch, sequence_length, hidden_size]
 
-		# Take the final context_size positions
-		x = x[:, -self.context_size:, :]
+		# Take the final input_len positions
+		x = x[:, -self.input_len:, :]
 		# [batch, context_size, hidden_size]
+		
+		# Reshape to output dim and len
+		x = x.mean(1)
+		x = x.view(x.size(0), -1)
+		x = self.out(x)
+		x = x.view(x.size(0), self.output_len, self.output_size)
 
-		# Project to output
-		out = self.fc(x)
-		# [batch, context_size, output_size]
-
-		return out
+		return x

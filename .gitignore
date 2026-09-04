@@ -24,6 +24,8 @@ dist/
 
 # Other
 data/
+tests/
+test.py
 
 # OS junk
 .DS_Store

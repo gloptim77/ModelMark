@@ -10,29 +10,29 @@ config = load_config()
 
 class Loader:
 
-	def __init__(self, file_config : dict, context_size : int):
+	def __init__(self, file_config : dict, input_len : int, output_len : int):
 
-		self.get_dataloaders(file_config, context_size) 
+		self.get_dataloaders(file_config, input_len, output_len) 
 		logger.debug(f"Dataset len stats: train={len(self.train_loader)} val={len(self.val_loader)} test={len(self.test_loader)}")
 
-	def get_dataloaders(self, file_config : dict, context_size : int) -> tuple[DataLoader, DataLoader, DataLoader]:
+	def get_dataloaders(self, file_config : dict, input_len : int, output_len : int) -> tuple[DataLoader, DataLoader, DataLoader]:
 		"""Load the data, pack to datasets, create the loaders and return them"""
 	
 		train_ds = CausalDataset(data_config = file_config,
-								seq_len = context_size, 
-								pred_len = context_size, 
+								input_len = input_len, 
+								output_len = output_len, 
 								split = "train")
 
 		val_ds 	= CausalDataset(data_config = file_config, 
-								seq_len = context_size, 
-								pred_len = context_size, 
+								input_len = input_len, 
+								output_len = output_len, 
 								split = "val", 
 								mean = train_ds.mean, 
 								std = train_ds.std)
 
 		test_ds = CausalDataset(data_config = file_config, 
-								seq_len = context_size, 
-								pred_len = context_size, 
+								input_len = input_len, 
+								output_len = output_len, 
 								split = "test", 
 								mean = train_ds.mean, 
 								std = train_ds.std)

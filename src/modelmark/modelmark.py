@@ -9,15 +9,15 @@ ModelMark
 	It can run the test with 
 		modelmark -t run
 
-	Test consists of F * C * M * S steps, where:
+	Test consists of F * O * M * S steps, where:
 		F - number of dataset files in the config (e.g. ["ETTh1" : ..., "Weather" : ...] means F = 2)
-		C - number of context sizes (e.g. [32, 64, 128] means C = 3)
+		O - number of input/output sizes (e.g. [32, 64, 128] means O = 3)
 		M - number of models (e.g. ["Linear" : ..., "LSTM" : ...] means M = 2)
 		S - number of seeds (e.g. [42, 43, 44] means S = 2)
 
 	At each testing run iteration, modelmark:
 		
-		1) Selects next dataset, context, model and seed 
+		1) Selects next dataset, input/output len, model and seed 
 		2) Seeds the generators for reproducibility
 		3) Creates the loader, model and tester objects
 		4) Trains the model for E epochs, restores the state with the least validation loss
@@ -65,14 +65,19 @@ config = load_config()
 
 def _check_model(name = "Linear", device=config.test_config["optim"]["device"]):
 	"""Check the testing model on shapes compatibility."""
-	first_config = next(iter(config.data_config.values()))
+	current_config = next(iter(config.data_config.values()))
 
-	input_dim = len(first_config["input_features"])
-	output_dim = len(first_config["output_features"])
+	input_dim = len(current_config["input_features"])
+	output_dim = len(current_config["output_features"])
 
-	model = config.model_config[name]["class"](input_dim, output_dim, context_size = 10).to(device)
-	dummy_input = torch.zeros([4, 10, input_dim]).to(device)
-	dummy_target = torch.zeros([4, 10, output_dim]).to(device)
+	input_len = config.test_config["input_len"][0]
+	output_len = config.test_config["output_len"][0]
+
+	model = config.model_config[name]["class"](input_dim, output_dim, input_len, output_len).to(device)
+
+	dummy_input = torch.zeros([1, input_len, input_dim]).to(device)
+	dummy_target = torch.zeros([1, output_len, output_dim]).to(device)
+
 	generated = model(dummy_input)
 	if generated.shape == dummy_target.shape:
 		console.print(f"Testing model {name} is ready", style="green")
@@ -81,7 +86,7 @@ def _check_model(name = "Linear", device=config.test_config["optim"]["device"]):
 		console.print(f"Testing model output expected shape {dummy_target.shape}, got {generated.shape}.\nCheck your definition of {name} model.", style="red")
 		return 1
 
-def run() -> int:
+def main() -> int:
 
 	# Parse the arguments
 	parser = Parser()
@@ -127,11 +132,11 @@ def run() -> int:
 	report_params = []
 
 	device = config.test_config["optim"]["device"]
-	c_current, c_total = 1, len(report_dataset_names) * len(report_model_names) * len(config.test_config["seeds"]) * len(config.test_config["contexts"])
+	c_current, c_total = 1, len(report_dataset_names) * len(report_model_names) * len(config.test_config["seeds"]) * len(config.test_config["output_len"])
 	pbar = tqdm(total=c_total, desc="Progress")
 	for file_name, file_config in config.data_config.items():
 
-		for test_context in config.test_config["contexts"]:
+		for input_len, output_len in zip(config.test_config["input_len"], config.test_config["output_len"]):
 
 			report_line = []
 			for model_name, model_config in config.model_config.items():
@@ -141,15 +146,17 @@ def run() -> int:
 					
 					# (Re-)Seed
 					set_seed(test_seed)
-					tqdm.write(f"Running test ({c_current}/{c_total}) | File: {file_name} | Context: {test_context} | Model: {model_name} | Seed: {test_seed}")
-					logger.debug(f"Test ({c_current}/{c_total})| F={file_name} C={test_context} M={model_name} S={test_seed}")
-				
-					# Create loader
-					loader = Loader(file_config = file_config, context_size = test_context)
-					# Create model
+					tqdm.write(f"Running test ({c_current}/{c_total}) | File: {file_name} | Output len: {output_len} | Model: {model_name} | Seed: {test_seed}")
+					logger.debug(f"Test ({c_current}/{c_total})| F={file_name} I/O={input_len}/{output_len} M={model_name} S={test_seed}")
+
+					# Get in/out dims
 					input_dim = len(file_config["input_features"])
 					output_dim = len(file_config["output_features"])
-					model = model_config["class"](input_dim, output_dim, context_size = test_context).to(device)
+
+					# Create loader
+					loader = Loader(file_config = file_config, input_len = input_len, output_len = output_len)
+					# Create model
+					model = model_config["class"](input_dim, output_dim, input_len, output_len).to(device)
 					# Create tester
 					tester = Tester(model = model, loader = loader)
 
@@ -188,7 +195,7 @@ def run() -> int:
 	# Obtain the columns&rows names
 	
 	report_columns = pd.MultiIndex.from_product([report_model_names, report_metric_names], names=["Model", "Metric"])
-	report_rows = pd.MultiIndex.from_product([report_dataset_names, config.test_config["contexts"]])
+	report_rows = pd.MultiIndex.from_product([report_dataset_names, config.test_config["output_len"]])
 	# Pack to the dataframe
 	df = pd.DataFrame(data = report_data, index = report_rows, columns = report_columns)
 
@@ -204,3 +211,7 @@ def run() -> int:
 	report.report(df, config.title, config.subtitle, model_stats)
 
 	return 0
+
+def run():
+	"""Entry point"""
+	return sys.exit(main())

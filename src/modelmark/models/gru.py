@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from modelmark.common.utils import load_config
 
 class GRUModel(nn.Module):
-	def __init__(self, input_dim : int, output_dim : int, context_size: int):
+	def __init__(self, input_dim: int, output_dim: int, input_len: int, output_len: int):
 		super().__init__()
 
 		# To avoid circular import, now it lives here
@@ -12,7 +13,8 @@ class GRUModel(nn.Module):
 
 		self.input_size = input_dim
 		self.output_size = output_dim
-		self.context_size = context_size
+		self.input_len = input_len
+		self.output_len = output_len
 		
 		self.hidden_size = config.model_config["GRU"]["hidden_size"]
 		self.num_layers = config.model_config["GRU"]["num_layers"]
@@ -24,22 +26,24 @@ class GRUModel(nn.Module):
 			batch_first = True,
 		)
 
-		self.fc = nn.Linear(
-			self.hidden_size,
-			context_size * self.output_size,
-		)
+		self.out = nn.Linear(self.hidden_size, self.output_len * self.output_size)
 
 	def forward(self, x):
+		"""
+			input: [B, input_len, input_dim]
+			output: [B, output_len, output_dim]			
+		"""
+
+		if x.ndim != 3:
+			raise ValueError(f"Expected x to have shape [B, L, D], got {x.shape}")
+
 		_, hn = self.gru(x)
 
 		# Last layer's hidden state
 		h = hn[-1]
 
-		out = self.fc(h)
-		out = out.view(
-			x.size(0),
-			self.context_size,
-			self.output_size,
-		)
+		x = self.out(h)
+		# Project to output dim and len
+		x = x.view(x.size(0), self.output_len, self.output_size)
 
-		return out
+		return x

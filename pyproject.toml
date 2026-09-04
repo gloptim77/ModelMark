@@ -11,19 +11,20 @@ version = "0.1.0"
 description = "Benchmark framework for neural network models"
 readme = "README.md"
 requires-python = ">=3.12"
-license = "MIT"
+license = { text = "MIT" }
 
 authors = [
     { name = "Andrew Larin" }
 ]
 
 dependencies = [
-    "numpy",
-    "pandas",
-	"torch",
-	"tqdm",
-	"playwright",
-	"rich"
+    "numpy>=2.4",
+    "pandas>=3.0",
+	"torch>=2.12",
+	"tqdm>=4.67",
+	"playwright>=1.62",
+	"rich>=15.0",
+	"thop>=0.1"
 ]
 
 [tool.setuptools.packages.find]

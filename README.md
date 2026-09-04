@@ -1,15 +1,16 @@
 # ModelMark
+
 This tool will help you to test NN models against each other, and form a detailed report that is easy to embed to a website.
 
 **Model evaluation report example:**
 
-<img src="result.png" alt="Evaluation result" width="600">
+<img src="https://github.com/gloptim77/ModelMark/blob/main/result.png" alt="Evaluation result" width="700">
 
 ## About:
 
 At each testing run iteration, modelmark:
 		
-	1) Selects next dataset, context, model and seed
+	1) Selects next dataset, input/output len, model and seed 
 	2) Seeds the generators for reproducibility
 	3) Creates the loader, model and tester objects
 	4) Trains the model for E epochs, restores the state with the least validation loss
@@ -27,10 +28,10 @@ More on training stats:
 	GFLOPs 		- average per batch
 	Peak Memory - max per training iteration
 
-Test consists of F * C * M * S runs, where:
+Test consists of F * O * M * S runs, where:
 	
 	F - number of dataset files in the config (e.g. ["ETTh1" : ..., "Weather" : ...] - means F = 2)
-	C - number of context sizes (e.g. [32, 64, 128] - means C = 3)
+	O - number of input/output sizes (e.g. [32, 64, 128] means O = 3)
 	M - number of models (e.g. ["Linear" : ..., "LSTM" : ...] - means M = 2)
 	S - number of seeds (e.g. [42, 43, 44] - means S = 2)
 
@@ -70,13 +71,15 @@ Test consists of F * C * M * S runs, where:
 	Example of the model: "src/modelmark/models/linear.py"
 	Example of the config: "src/modelmark/config.py" 
 
-You will find the detailed config example with description at [src/modelmark/config.py](src/modelmark/config.py).
+You will find the detailed config example with description at [src/modelmark/config.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/config.py).
 
-Example Linear model with detailed description at [src/modelmark/models/linear.py](src/modelmark/models/linear.py).
+Example Linear model with detailed description at [src/modelmark/models/linear.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/models/linear.py).
 
 You can change the config and add your model files to suit your test requirements. 
 
 (But make sure that config and models are compatible)
+
+If you have questions or want to check the source code, go to [ModelMark Github](https://github.com/gloptim77/ModelMark/tree/main).
 
 ## Troubleshooting
 

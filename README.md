@@ -1,94 +1,161 @@
 # ModelMark
 
-This tool will help you to test NN models against each other, and form a detailed report that is easy to embed to a website.
+ModelMark is a CLI benchmarking tool for comparing neural-network models. It runs your models on one or more datasets, records performance and efficiency statistics, and generates an easy-to-embed HTML/PNG report.
 
-**Model evaluation report example:**
+![Evaluation result](https://raw.githubusercontent.com/gloptim77/ModelMark/refs/heads/main/result.png)
 
-<img src="https://raw.githubusercontent.com/gloptim77/ModelMark/refs/heads/main/result.png" alt="Evaluation result" width="700">
+## Table of Contents
 
-## About:
+- [About](#about)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [How the Benchmark Works](#how-the-benchmark-works)
+- [Reported Metrics](#reported-metrics)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
 
-At each testing run iteration, modelmark:
-		
-	1) Selects next dataset, input/output len, model and seed 
-	2) Seeds the generators for reproducibility
-	3) Creates the loader, model and tester objects
-	4) Trains the model for E epochs, restores the state with the least validation loss
-	5) Tracks the GFLOPs, Memory, Time - all AVG over whole test
-	5) Evaluates the model on dataset with metrics from configuration file
-	6) Stores the mean result over S runs 
+## About
 
-	That way, the more seeds you run, the more "fair" the results are.
-	Finally, modelmark will form the report with all the testing results, training stats and your machine metadata.
+For each benchmark run, ModelMark:
 
-More on training stats:
-		
-	Time 		- average time per epoch 
-	Params 		- total number of model params
-	GFLOPs 		- average per batch
-	Peak Memory - max per training iteration
+1. Selects the next combination of dataset, input/output size, model, and seed.
+2. Seeds the random generators for reproducibility.
+3. Creates the data loader, model, and tester objects.
+4. Trains the model for the configured number of epochs and restores the checkpoint with the lowest validation loss.
+5. Records runtime and efficiency statistics.
+6. Evaluates the model on the dataset using the metrics from the configuration file.
 
-Test consists of F * O * M * S runs, where:
+After all runs finish, ModelMark aggregates the results and generates a report containing testing results, training statistics, and your machine metadata.
+
+## Requirements
+
+- OS: Windows or Linux
+- Python: 3.12 or newer
+- Git: required for installation from GitHub
+
+## Installation
+
+Install ModelMark from PyPI:
+
+```bash
+pip install modelmark
+```
+
+## Quick Start
+
+1. Run initialization in an empty folder:
+
+   ```bash
+   modelmark init
+   ```
+
+   This creates two folders:
+   - `modelmark_files/` — configuration and log files
+   - `models/` — your model files
+
+2. Edit the configuration file:
+
+   `modelmark_files/config.py`
+
+   It contains three main configuration blocks:
+   - `model_config` — model hyperparameters such as number of layers, hidden dimension, kernel size, etc.
+   - `data_config` — dataset parameters such as file path, input/output features, train/val ratios, etc.
+   - `test_config` — testing options such as optimizer, loss criterion, metrics, learning rate, etc.
+
+3. Put the testing models to the `models/` folder.
 	
-	F - number of dataset files in the config (e.g. ["ETTh1" : ..., "Weather" : ...] - means F = 2)
-	O - number of input/output sizes (e.g. [32, 64, 128] means O = 3)
-	M - number of models (e.g. ["Linear" : ..., "LSTM" : ...] - means M = 2)
-	S - number of seeds (e.g. [42, 43, 44] - means S = 2)
-
-# Requirements:
+	Make sure to import model's class definitions to the `config.py`.
 	
-	OS: Windows or Linux
-	Python: 3.12+
-
-# Usage:
-
-	1) Install the package   
-		
-		pip install "modelmark @ git+https://github.com/gloptim77/ModelMark.git"
-
-	2) Run the initialization in an empty folder
-
-		modelmark -t init
-	
-	3.1) It will create two folders "modelmark_files" and "models"
-	   
-	    In modelmark_files/config.py there are 3 main configs:
-
-	   		model_config = {...} - Models hyperparameters (number of layers, hidden dim, kernel size, etc.)
-			data_config = {...} - Dataset parameters (path to file, input/output features, train/val ratios, etc.)
-			test_config = {...} - Testing options (optimizer, loss criterion, metrics, learning rate, etc.)
-
-	3.2) (Optional) download the ETT dataset files
-
-		modelmark -t load
+	Configure `config.model_config` according to your task. 
  
-	4) When your config, model and data are ready, you can run the testing
+5. Download the dataset files (ETT by default):
 
-		modelmark -t run
+   ```bash
+   modelmark load
+   ```
 
-	5) When the test is over, report results will be in files "result.html" and "result.png"
+6. Run the benchmark:
 
-	Example of the model: "src/modelmark/models/linear.py"
-	Example of the config: "src/modelmark/config.py" 
+   ```bash
+   modelmark run
+   ```
 
-You will find the detailed config example with description at [src/modelmark/config.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/config.py).
+7. View the generated report:
+   - `result.html`
+   - `result.png`
 
-Example Linear model with detailed description at [src/modelmark/models/linear.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/models/linear.py).
+## Configuration
 
-You can change the config and add your model files to suit your test requirements. 
+You can adjust the configuration and add your own model files in the `models/` directory to match your benchmarking needs.
 
-(But make sure that config and models are compatible)
+Make sure your model implementation is compatible with the keys and settings used in your configuration.
 
-If you have questions or want to check the source code, go to [ModelMark Github](https://github.com/gloptim77/ModelMark/tree/main).
+A detailed configuration example is available at:
+[src/modelmark/config.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/config.py)
+
+A detailed example model is available at:
+[src/modelmark/models/linear.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/models/linear.py)
+
+## How the Benchmark Works
+
+The benchmark consists of:
+
+```text
+F × O × M × S
+```
+
+where:
+
+| Symbol | Meaning | Example |
+|---|---|---|
+| `F` | Number of dataset files in the configuration | `{"ETTh1": ..., "Weather": ...}` → `F = 2` |
+| `O` | Number of input/output size configurations | `[32, 64, 128]` → `O = 3` |
+| `M` | Number of models | `{"Linear": ..., "LSTM": ...}` → `M = 2` |
+| `S` | Number of seeds | `[42, 43, 44]` → `S = 3` |
+
+ModelMark repeats the training/evaluation process for each combination and stores the mean result over `S` runs. Using more seeds generally makes the comparison more fair and statistically stable.
+
+## Reported Metrics
+
+The report includes statistics such as:
+
+| Metric | Description |
+|---|---|
+| Time | Average training time per epoch |
+| Params | Total number of model parameters |
+| GFLOPs | Average GFLOPs per batch |
+| Peak Memory | Maximum memory observed during a training iteration |
+
+The report also includes the evaluation metrics configured in `test_config` and your machine metadata.
+
+## Examples
+
+Run `modelmark init`, it will create config at `modelmark_files/config.py` and model's example folder at `models/` with Linear model file inside:
+
+- Configuration example: [src/modelmark/config.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/config.py)
+- Linear model example: [src/modelmark/models/linear.py](https://github.com/gloptim77/ModelMark/blob/main/src/modelmark/models/linear.py)
 
 ## Troubleshooting
 
-- **If something doesn't work**
+If something does not work:
 
-	- Please open an issue and attach your application logs (found at "modelmark_files/modelmark.log") so I can help you troubleshoot. 
-	- Try to restart
-		```python
-		modelmark -t restart
-  		```
+1. Check the application log:
+   `modelmark_files/modelmark.log`
+2. Try restarting ModelMark:
 
-	- Try to manually delete "modelmark_files" and return to Usage->2)
+   ```bash
+   modelmark restart
+   ```
+
+3. If the issue persists, delete the `modelmark_files` folder and run:
+
+   ```bash
+   modelmark init
+   ```
+
+When opening an issue on GitHub, please include the relevant part of your log file.
+
+If you have questions or want to inspect the source code, see the
+[ModelMark GitHub repository](https://github.com/gloptim77/ModelMark/tree/main).

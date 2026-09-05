@@ -11,8 +11,8 @@ class ConvModel(nn.Module):
 		# To avoid circular import, now it lives here
 		config = load_config()
 
-		self.input_size = input_dim
-		self.output_size = output_dim
+		self.input_dim = input_dim
+		self.output_dim = output_dim
 		self.input_len = input_len
 		self.output_len = output_len
 		
@@ -22,7 +22,7 @@ class ConvModel(nn.Module):
 		
 		layers = []
 
-		in_channels = self.input_size
+		in_channels = self.input_dim
 
 		for _ in range(self.num_layers):
 			layers.append(
@@ -42,8 +42,8 @@ class ConvModel(nn.Module):
 		# Collapse the sequence dimension to one feature vector
 		self.pool = nn.AdaptiveAvgPool1d(1)
 
-		# Produce exactly context_size * output_size values
-		self.fc = nn.Linear(self.hidden_size, output_len  * self.output_size)
+		# Produce exactly context_size * output_dim values
+		self.fc = nn.Linear(self.hidden_size, output_len  * self.output_dim)
 
 	def forward(self, x):
 		"""
@@ -62,9 +62,9 @@ class ConvModel(nn.Module):
 		x = self.pool(x)
 		# [batch, hidden_size]
 		x = x.squeeze(-1)
-		# [batch, context_size * output_size]
+		# [batch, context_size * output_dim]
 		x = self.fc(x)
 		# Project to output dim and len
-		x = x.view(x.size(0), self.output_len, self.output_size)
+		x = x.view(x.size(0), self.output_len, self.output_dim)
 
 		return x

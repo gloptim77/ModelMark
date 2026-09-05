@@ -38,8 +38,8 @@ class Linear(nn.Module):
 		# It lives here to avoid circular config
 		config = load_config()
 
-		self.input_size = input_dim
-		self.output_size = output_dim
+		self.input_dim = input_dim
+		self.output_dim = output_dim
 		self.input_len = input_len
 		self.output_len = output_len
 
@@ -47,7 +47,7 @@ class Linear(nn.Module):
 		self.num_layers = config.model_config["Linear"]["num_layers"]
 
 		layers = [
-			nn.Linear(self.input_size, self.hidden_size),
+			nn.Linear(self.input_dim, self.hidden_size),
 			nn.GELU(),
 		]
 
@@ -58,7 +58,7 @@ class Linear(nn.Module):
 			])
 
 		self.net = nn.Sequential(*layers)
-		self.out = nn.Linear(self.hidden_size, self.output_size * self.output_len)
+		self.out = nn.Linear(self.hidden_size, self.output_dim * self.output_len)
 
 	def forward(self, x):
 		"""
@@ -75,6 +75,6 @@ class Linear(nn.Module):
 		x = x.mean(1)
 		x = x.view(x.size(0), -1)
 		x = self.out(x)
-		x = x.view(x.size(0), self.output_len, self.output_size)
+		x = x.view(x.size(0), self.output_len, self.output_dim)
 
 		return x

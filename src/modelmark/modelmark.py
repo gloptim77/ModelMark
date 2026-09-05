@@ -4,10 +4,10 @@ ModelMark
 	This tool will help you to test NN models against each other,
 	and form a detailed report that is easy to embed to a website.   
 
-	It can download dataset with
-		modelmark -t load
+	It can download ETT dataset with
+		modelmark load
 	It can run the test with 
-		modelmark -t run
+		modelmark run
 
 	Test consists of F * O * M * S steps, where:
 		F - number of dataset files in the config (e.g. ["ETTh1" : ..., "Weather" : ...] means F = 2)
@@ -31,9 +31,9 @@ ModelMark
 
 	About training stats:
 		
-		Time - average time per epoch 
-		Params - total number of model params
-		GFLOPs - average per batch
+		Time 		- average time per epoch 
+		Params 		- total number of model params
+		GFLOPs 		- average per batch
 		Peak Memory - max per training iteration
 
 	---	

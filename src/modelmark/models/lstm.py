@@ -11,8 +11,8 @@ class LSTMModel(nn.Module):
 		# To avoid circular import, now it lives here
 		config = load_config()
 
-		self.input_size = input_dim
-		self.output_size = output_dim
+		self.input_dim = input_dim
+		self.output_dim = output_dim
 		self.input_len = input_len
 		self.output_len = output_len
 		self.hidden_size = config.model_config["LSTM"]["hidden_size"]
@@ -20,13 +20,13 @@ class LSTMModel(nn.Module):
 		
 		# Change nn.GRU to nn.LSTM
 		self.lstm = nn.LSTM(
-			input_size=self.input_size,
-			hidden_size=self.hidden_size,
-			num_layers=self.num_layers,
-			batch_first=True,
+			input_size = self.input_dim,
+			hidden_size = self.hidden_size,
+			num_layers = self.num_layers,
+			batch_first = True,
 		)
 
-		self.out = nn.Linear(self.hidden_size, self.output_len * self.output_size)
+		self.out = nn.Linear(self.hidden_size, self.output_len * self.output_dim)
 
 	def forward(self, x):
 		"""
@@ -44,6 +44,6 @@ class LSTMModel(nn.Module):
 		
 		x = self.out(h)
 		# Project to output dim and len
-		x = x.view(x.size(0), self.output_len, self.output_size)
+		x = x.view(x.size(0), self.output_len, self.output_dim)
 		
 		return x

@@ -4,7 +4,7 @@ This tool will help you to test NN models against each other, and form a detaile
 
 **Model evaluation report example:**
 
-<img src="https://github.com/gloptim77/ModelMark/blob/main/result.png" alt="Evaluation result" width="700">
+<img src="https://raw.githubusercontent.com/gloptim77/ModelMark/refs/heads/main/result.png" alt="Evaluation result" width="700">
 
 ## About:
 

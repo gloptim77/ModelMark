@@ -11,8 +11,8 @@ class TransformerModel(nn.Module):
 		# To avoid circular import, now it lives here
 		config = load_config()
 
-		self.input_size = input_dim
-		self.output_size = output_dim
+		self.input_dim = input_dim
+		self.output_dim = output_dim
 		self.input_len = input_len
 		self.output_len = output_len
 		self.max_seq_len = input_len
@@ -23,24 +23,24 @@ class TransformerModel(nn.Module):
 		self.dropout = config.model_config["Transformer"]["dropout"]
 
 		# Input projection
-		self.input_proj = nn.Linear(self.input_size, self.hidden_size,)
+		self.input_proj = nn.Linear(self.input_dim, self.hidden_size,)
 
 		# Learnable positional embedding
 		self.pos_embedding = nn.Parameter(torch.zeros(1, self.max_seq_len, self.hidden_size))
 
 		# Transformer decoder layer
 		decoder_layer = nn.TransformerDecoderLayer(
-			d_model=self.hidden_size,
-			nhead=self.num_heads,
-			dim_feedforward=4 * self.hidden_size,
-			dropout=self.dropout,
-			batch_first=True,
+			d_model 		= self.hidden_size,
+			nhead 			= self.num_heads,
+			dim_feedforward = 4 * self.hidden_size,
+			dropout 		= self.dropout,
+			batch_first 	= True,
 		)
 
-		self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=self.num_layers)
+		self.decoder = nn.TransformerDecoder(decoder_layer, num_layers = self.num_layers)
 
 		# Map hidden representation to outputs
-		self.out = nn.Linear(self.hidden_size, self.output_size * self.output_len)
+		self.out = nn.Linear(self.hidden_size, self.output_dim * self.output_len)
 
 	def forward(self, x):
 		"""
@@ -82,6 +82,6 @@ class TransformerModel(nn.Module):
 		x = x.mean(1)
 		x = x.view(x.size(0), -1)
 		x = self.out(x)
-		x = x.view(x.size(0), self.output_len, self.output_size)
+		x = x.view(x.size(0), self.output_len, self.output_dim)
 
 		return x

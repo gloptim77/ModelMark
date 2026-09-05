@@ -21,22 +21,24 @@ class Parser:
 			formatter_class=argparse.RawTextHelpFormatter,
 			description = constants.PARSER_DESC
 		)
+
+		# Create a subparser container
+		subparsers = self.parser.add_subparsers(dest="command", required=True)
 	
-		# Add arguments
-		self.parser.add_argument(
-			"-t", "--task",
-			type = str,
-			default = "help",
-			help = constants.PARSER_HELP
-		)
+		# Define your action words (subcommands)
+		subparsers.add_parser("init", 	help = "Test init, create the modelmark_files/, customizable config.py file and models/ with examples.")
+		subparsers.add_parser("load",	help = "Dataset download, create the data/ folder and download ETT dataset there.")				
+		subparsers.add_parser("run", 	help = "Run the test.")
+		subparsers.add_parser("clear", 	help = "Remove the modelmark_files folder.")
+		subparsers.add_parser("reset", 	help = "Runs clean and init.")
+		subparsers.add_parser("help", 	help = "Print the info above.")
+	
+		self.args = self.parser.parse_args()
 	
 		# Run without args / help request - print help
 		if len(sys.argv) == 1:
 			self.parser.print_help()
 			sys.exit(1)
-		
-		# Parse argument values
-		self.args = self.parser.parse_args()
 
 		# Setup other
 		pd.set_option('display.colheader_justify', 'center')	
@@ -45,38 +47,38 @@ class Parser:
 		"""Select the task and run"""
 
 		# Config initialization #
-		if self.args.task == "init":
+		if self.args.command == "init":
 			self.init_config()
 			return 0
 
 		# Dataset download #
-		if self.args.task == "load":
+		if self.args.command == "load":
 			download_dataset("ett")
 			return 0
 
 		# Run the test #
-		if self.args.task == "run":
+		if self.args.command == "run":
 			return None
 
 		# Clean the config folder #
-		if self.args.task == "clear":
+		if self.args.command == "clear":
 			self.clear_config()
 			return 0
 
 		# Reset the modelmark config #
-		if self.args.task == "reset":
+		if self.args.command == "reset":
 			self.reset_config()
 			return 0
 
 		# Print the modelmark usage #
-		if self.args.task == "help":
+		if self.args.command == "help":
 			self.parser.print_help()
 			return 0
 		
 		# Check if task is correct #
-		if self.args.task != "run":
-			logger.error(f"Unknown task: {self.args.task}, run 'modelmark' for more info")
-			console.print(f"Unknown task: {self.args.task}, run 'modelmark' for more info", style="red")
+		if self.args.command != "run":
+			logger.error(f"Unknown command: {self.args.command}, run 'modelmark help' for more info")
+			console.print(f"Unknown command: {self.args.command}, run 'modelmark help' for more info", style="red")
 			return 1
 
 		# Otherwise return error
